@@ -1,4 +1,4 @@
-class Node {
+class PathNode {
     static RADIUS = 5;
 
     constructor(x, y) {
@@ -46,16 +46,16 @@ class Node {
             fill(0, 255, 0, 100);
             stroke(0, 255, 0, 100);
             rectMode(CENTER);
-            rect(this.pos.x, this.pos.y, Node.RADIUS * 2, Node.RADIUS * 2);
+            rect(this.pos.x, this.pos.y, PathNode.RADIUS * 2, PathNode.RADIUS * 2);
         }
         else {
             fill(255, 0, 0, 100);
             stroke(255, 0, 0, 100);
-            circle(this.pos.x, this.pos.y, Node.RADIUS * 2);
+            circle(this.pos.x, this.pos.y, PathNode.RADIUS * 2);
         }
         if (this.out.length > 0) {
             this.out.forEach(next => {
-                drawArrow(this, next);
+                drawArrow(this.pos, next.pos, PathNode.RADIUS + 5);
             });
         }
     }
@@ -86,15 +86,12 @@ class Graph {
     }
 
     createNode(x, y) {
-        let node = new Node(x, y);
+        let node = new PathNode(x, y);
         this.addNode(node);
         return node;
     }
 
     deleteNode(node) {
-        node.out.forEach(next => {
-            node.deleteBranch(next);
-        });
         node.in.forEach(prev => {
             prev.deleteBranch(node, false);
         });

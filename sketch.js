@@ -1,12 +1,15 @@
 "use strict";
 
-let graph = new Graph();
+let graph;
+let agents = [];
+
+let spawningNode = null;
 let draggedNode = null;
 let isRepositioning = false;
 let deleteBoxOrigin = null;
 let closestNodeInfo;
 
-let isHoveringOverNode = () => closestNodeInfo.distance < (Node.RADIUS * 2 + 5);
+let isHoveringOverNode = () => closestNodeInfo.distance < (PathNode.RADIUS * 2 + 5);
 
 function getAllNodesInDeleteBox() {
     if (deleteBoxOrigin == null) return [];
@@ -17,25 +20,55 @@ function getAllNodesInDeleteBox() {
     return graph.getNodesInRect(x0, y0, x1, y1);
 }
 
+function createGraph() {
+    graph = new Graph();
+    let radius = 300;
+    let resolution = 20;
+    let origin = createVector(640, 450);
+
+    let angleStep = TWO_PI / resolution;
+    let pointer = createVector(radius, 0);
+
+    for (let i = 0; i < resolution; i++) {
+        let pos = p5.Vector.add(origin, pointer);
+        let node = graph.createNode(pos.x, pos.y);
+        if (graph.nodes.length > 1) {
+            graph.nodes[graph.nodes.length - 2].addBranch(node);
+        }
+        pointer.rotate(angleStep);
+    }
+    graph.nodes[graph.nodes.length - 1].addBranch(graph.nodes[0]);
+}
+
 function setup() {
     createCanvas(1280, 900);
     disableContextMenu();
-    let n1 = graph.createNode(200, 200);
-    let n2 = graph.createNode(300, 400);
-    let n3 = graph.createNode(400, 300);
-    let n4 = graph.createNode(500, 250);
-    let n5 = graph.createNode(425, 500);
-    n1.addBranch(n2);
-    n1.addBranch(n3);
-    n3.addBranch(n2);
-    n3.addBranch(n4);
-    n2.next = n5;
+
+    createGraph();
+
+    for (let i = 0; i < 50; i++) {
+        let agent = new TrafficAgent(640, 450);
+        agent.vmax = Math.random() * 15 + 10;
+        agent.setTarget(getRandomArrayItem(graph.nodes));
+        agents.push(agent);
+    }
+
+    console.log("Nodes: " + graph.nodes.length, "Agents: " + agents.length);
 }
 
 function draw() {
+    frameRate(120);
     background(24);
+
     graph.draw();
-    if (draggedNode != null) draggedNode.draw();
+
+    if (draggedNode != null) {
+        draggedNode.draw();
+        if (spawningNode != null) {
+            stroke(100, 100, 100);
+            drawArrow(spawningNode.pos, draggedNode.pos, PathNode.RADIUS + 5);
+        }
+    }
     if (deleteBoxOrigin != null) {
         fill(255, 0, 0, 30); stroke(255, 0, 0);
         rectMode(CORNER); rect(deleteBoxOrigin.x, deleteBoxOrigin.y, mouseX - deleteBoxOrigin.x, mouseY - deleteBoxOrigin.y);
@@ -43,14 +76,19 @@ function draw() {
 
     getAllNodesInDeleteBox().forEach(node => {
         noFill(); stroke(255, 0, 0);
-        circle(node.pos.x, node.pos.y, Node.RADIUS * 2 + 5);
+        circle(node.pos.x, node.pos.y, PathNode.RADIUS * 2 + 5);
     });
 
     closestNodeInfo = graph.getClosestNodeTo(mouseX, mouseY);
     if (isHoveringOverNode()) {
         noFill(); stroke(200, 200, 200);
-        circle(closestNodeInfo.node.pos.x, closestNodeInfo.node.pos.y, Node.RADIUS * 2 + 5);
+        circle(closestNodeInfo.node.pos.x, closestNodeInfo.node.pos.y, PathNode.RADIUS * 2 + 5);
     }
+
+    agents.forEach(agent => {
+        agent.update(deltaTime);
+        agent.draw();
+    });
 }
 
 function mousePressed() {
@@ -61,9 +99,9 @@ function mousePressed() {
             draggedNode = closestNodeInfo.node;
         }
         else {
-            draggedNode = new Node(mouseX, mouseY);
+            draggedNode = new PathNode(mouseX, mouseY);
             draggedNode.__debug_id = -420;
-            closestNodeInfo.node.addBranch(draggedNode);
+            spawningNode = closestNodeInfo.node;
         }
     }
     else if (isHoveringOverNode() && mouseButton == CENTER) {
@@ -92,15 +130,15 @@ function mouseReleased() {
             isRepositioning = false;
         }
         else if (isHoveringOverNode()) {
-            draggedNode.in[0].out.pop();
             if (keyIsDown(CONTROL)) {
-                draggedNode.in[0].deleteBranch(closestNodeInfo.node);
+                spawningNode.deleteBranch(closestNodeInfo.node);
             }
             else {
-                draggedNode.in[0].addBranch(closestNodeInfo.node);
+                spawningNode.addBranch(closestNodeInfo.node);
             }
         } 
         else {
+            spawningNode.addBranch(draggedNode);
             graph.addNode(draggedNode);
         }
         draggedNode = null;
