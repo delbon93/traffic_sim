@@ -16,7 +16,7 @@ class TrafficAgent {
         this.dir = createVector(v.x - this.pos.x, v.y - this.pos.y);
         this.dir.normalize();
         this.right = createVector(this.dir.x, this.dir.y);
-        this.right.rotate(QUARTER_PI);
+        this.right.rotate(HALF_PI);
     }
 
     move(delta) {
@@ -48,8 +48,8 @@ class TrafficAgent {
         let distanceThreshold = 5;
 
         if (p5.Vector.sub(this.targetNode.pos, this.pos).mag() < distanceThreshold) {
-            if (this.targetNode.out.length > 0) {
-                this.targetNode = getRandomArrayItem(this.targetNode.out);
+            if (this.targetNode.outUnblocked.length > 0) {
+                this.targetNode = getRandomArrayItem(this.targetNode.outUnblocked);
             }
         }
         else {

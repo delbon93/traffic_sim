@@ -23,21 +23,38 @@ function getAllNodesInDeleteBox() {
 function createGraph() {
     graph = new Graph();
     let radius = 300;
+    let outerRadius = 340;
     let resolution = 20;
     let origin = createVector(640, 450);
 
     let angleStep = TWO_PI / resolution;
     let pointer = createVector(radius, 0);
+    let outerPointer = createVector(outerRadius, 0);
+    let outerOffset = angleStep / 2;
+    outerPointer.rotate(outerOffset);
+    let innerNodes = [], outerNodes = [];
 
     for (let i = 0; i < resolution; i++) {
+        // inner ring
         let pos = p5.Vector.add(origin, pointer);
         let node = graph.createNode(pos.x, pos.y);
-        if (graph.nodes.length > 1) {
-            graph.nodes[graph.nodes.length - 2].addBranch(node);
+        innerNodes.push(node);
+        if (innerNodes.length > 1) {
+            innerNodes[innerNodes.length - 2].addBranch(node);
         }
         pointer.rotate(angleStep);
+
+        // outer ring
+        pos = p5.Vector.add(origin, outerPointer);
+        node = graph.createNode(pos.x, pos.y);
+        outerNodes.push(node);
+        if (outerNodes.length > 1) {
+            outerNodes[outerNodes.length - 2].addBranch(node);
+        }
+        outerPointer.rotate(-angleStep);
     }
-    graph.nodes[graph.nodes.length - 1].addBranch(graph.nodes[0]);
+    innerNodes[innerNodes.length - 1].addBranch(innerNodes[0]);
+    outerNodes[outerNodes.length - 1].addBranch(outerNodes[0]);
 }
 
 function setup() {
@@ -46,7 +63,7 @@ function setup() {
 
     createGraph();
 
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 30; i++) {
         let agent = new TrafficAgent(640, 450);
         agent.vmax = Math.random() * 15 + 10;
         agent.setTarget(getRandomArrayItem(graph.nodes));
@@ -105,7 +122,14 @@ function mousePressed() {
         }
     }
     else if (isHoveringOverNode() && mouseButton == CENTER) {
-        closestNodeInfo.node.printDebugInfo();
+        if (keyIsDown(SHIFT)) {
+            closestNodeInfo.node.out.forEach(next => {
+                next.blocked = !next.blocked;
+            });
+        }
+        else {
+            closestNodeInfo.node.blocked = !closestNodeInfo.node.blocked;
+        }
     }
     else if (isHoveringOverNode() && mouseButton == RIGHT) {
         graph.deleteNode(closestNodeInfo.node);
@@ -141,6 +165,7 @@ function mouseReleased() {
             spawningNode.addBranch(draggedNode);
             graph.addNode(draggedNode);
         }
+        spawningNode = null;
         draggedNode = null;
     }
     if (deleteBoxOrigin != null) {

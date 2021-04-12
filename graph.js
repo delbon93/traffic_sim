@@ -6,6 +6,12 @@ class PathNode {
         this.out = [];
         this.in = [];
         this.__debug_id = -1;
+        this.blocked = false;
+        console.log(this.blocked);
+    }
+
+    get outUnblocked () {
+        return this.out.filter(node => !node.blocked);
     }
 
     set next(next) {
@@ -41,21 +47,27 @@ class PathNode {
     }
 
     draw() {
+        let blockedCol = color(255, 255, 0, 150);
+        let defaultCol = this.isControlNode ? color (0, 255, 0, 100) : color (255, 0, 0, 100);
+        let col = this.blocked ? blockedCol : defaultCol;
+        stroke(col); fill(col);
         strokeWeight(1);
         if (this.isControlNode) {
-            fill(0, 255, 0, 100);
-            stroke(0, 255, 0, 100);
             rectMode(CENTER);
             rect(this.pos.x, this.pos.y, PathNode.RADIUS * 2, PathNode.RADIUS * 2);
         }
         else {
-            fill(255, 0, 0, 100);
-            stroke(255, 0, 0, 100);
             circle(this.pos.x, this.pos.y, PathNode.RADIUS * 2);
         }
         if (this.out.length > 0) {
             this.out.forEach(next => {
-                drawArrow(this.pos, next.pos, PathNode.RADIUS + 5);
+                let arrowBaseLength = 0;
+                stroke(defaultCol);
+                if (next.blocked) {
+                    arrowBaseLength = 20;
+                    stroke(blockedCol);
+                }
+                drawArrow(this.pos, next.pos, PathNode.RADIUS + 5, arrowBaseLength);
             });
         }
     }
