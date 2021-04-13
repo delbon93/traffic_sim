@@ -78,7 +78,7 @@ function setup() {
 }
 
 function draw() {
-    frameRate(120);
+    frameRate(60);
     background(24);
 
     // Draw the ghost node and the ghost arrow pointing to it
