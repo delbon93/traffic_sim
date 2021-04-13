@@ -31,6 +31,7 @@ a connection to that node instead.
 You can also drag out new nodes from a connection. This splits the connection and creates a new node where you
 dragged it out.
 A new node can also be dragged onto a connection. This also splits the connection and creates a new node.
+Simply clicking onto a connection inserts a node into the path.
 
 Hold shift and left click a node to drag it.
 
