@@ -1,7 +1,7 @@
 # traffic_sim
 A simple agent based traffic simulation using Javascript and p5.js
 
-[Click here](delbon93.github.io/traffic_sim/index.html) to try it in your browser!
+[Click here](https://delbon93.github.io/traffic_sim/index.html) to try it in your browser!
 
 ## Current features
 
