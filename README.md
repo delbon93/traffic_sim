@@ -24,6 +24,18 @@ While travelling towards a node, the agent reserves this connection. A connectio
 deciding on a new path, agents will consider reserved connections as blocked. The reservation is removed once the
 reserving agent starts moving along another connection. This way collisions can be avoided.
 
+Nodes can also be deferred nodes, indicated by a yellow outline. Deferred nodes behave differently when it comes to
+reservations and blocking:
+>A deferred node is considered blocked not only if its own block state is set (fully yellow), but also if ALL of the
+nodes it has outgoing connections to are blocked aswell. These nodes can be deferred themselves, so you can create
+a chain of deferred nodes. This allows entire path segments consisting of multiple nodes in a row to be blocked if the
+furthermost non-deferred node is blocked. Note that "blocked" in this sense also includes reservations by default.
+>Additionally, if a deferred block is being reserved by an agent, this reservation too is carried ahead to the next node.
+If this node also is deferred it again reserves the next node and so forth. This continues until either a non-deferred
+node is reached (that node however will then still be reserved) or until a node branches of in multiple directions (that
+node too will be reserved). This allows agents to reserve an entire multi-segment path
+
+
 ## Controls
 
 Left click on a node to drag out a new connected node. Drag it onto an existing node to create 
@@ -43,3 +55,5 @@ Right click and drag anywhere to delete multiple nodes at once.
 Middle click on a node to block or free its ingoing connections.
 Hold shift and middle click on a node to toggle all outgoing connections as blocked instead (it actually toggles the
 blocking state of all nodes this node has outgoing connections to).
+
+Hover over a node and press 'd' to toggle this node being deferred.
