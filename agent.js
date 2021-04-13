@@ -21,7 +21,7 @@ class TrafficAgent {
 
     move(delta) {
         if (delta < 0.001) return;
-        let speed = this.vmax / delta;
+        let speed = this.vmax * delta / 1000;
         let step = p5.Vector.mult(this.dir, speed);
         this.pos.add(step.x, step.y);
     }

@@ -1,5 +1,7 @@
 "use strict";
 
+let fps_values = [];
+
 let graph;
 let agents = [];
 
@@ -61,7 +63,7 @@ function createGraph() {
 function createAgents() {
     for (let i = 0; i < 30; i++) {
         let agent = new TrafficAgent(640, 450, graph);
-        agent.vmax = Math.random() * 15 + 10;
+        agent.vmax = Math.random() * 75 + 50;
         agent.setTarget(getRandomArrayItem(graph.nodes));
         agents.push(agent);
     }
@@ -123,6 +125,15 @@ function draw() {
         agent.update(deltaTime);
         agent.draw();
     });
+
+    // DEBUG: draw delta time
+    fill(230); stroke(230); textSize(16); 
+    text("frame time: " + str(deltaTime) + "ms", 40, 40); 
+    let fps = 1/(deltaTime / 1000);
+    fps_values.push(fps);
+    if (fps_values.length > 180) fps_values.shift();
+    fps = round(average(fps_values));
+    text("fps: " + str(fps), 40, 60);
 }
 
 function mousePressed() {

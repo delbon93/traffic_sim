@@ -47,3 +47,12 @@ function getRandomArrayItem(array) {
 function clamp(x, lower, upper) {
     return min(max(x, lower), upper);
 }
+
+function average(array) {
+    if (array.length == 0) return 0;
+    let a = 0;
+    array.forEach(x => {
+        a += x;
+    });
+    return a / array.length;
+}
