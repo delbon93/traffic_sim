@@ -9,10 +9,11 @@ let spawningNode = null;
 let draggedNode = null;
 let isRepositioning = false;
 let deleteBoxOrigin = null;
-let closestNodeInfo;
+let nodeCollisionInfo;
 let edgeCollisionInfo;
 
-let isHoveringOverNode = () => closestNodeInfo.distance < (PathNode.RADIUS * 2 + 5);
+let isSelectingNode = () => nodeCollisionInfo.distance < (PathNode.RADIUS * 2 + 5);
+let isSelectingEdge = () => edgeCollisionInfo.hit;
 
 function getAllNodesInDeleteBox() {
     if (deleteBoxOrigin == null) return [];
@@ -106,15 +107,15 @@ function draw() {
     });
 
     // Determine if the mouse is close enough to a node to interact with
-    closestNodeInfo = graph.getClosestNodeTo(mouseX, mouseY);
-    if (isHoveringOverNode()) {
+    nodeCollisionInfo = graph.getClosestNodeTo(mouseX, mouseY);
+    if (isSelectingNode()) {
         noFill(); stroke(200, 200, 200);
-        circle(closestNodeInfo.node.pos.x, closestNodeInfo.node.pos.y, PathNode.RADIUS * 2 + 5);
+        circle(nodeCollisionInfo.node.pos.x, nodeCollisionInfo.node.pos.y, PathNode.RADIUS * 2 + 5);
     }
 
     // Determine if the mouse is on an edge
     edgeCollisionInfo = getEdgeCollision(graph, mouseX, mouseY, 10, PathNode.RADIUS * 6);
-    if (edgeCollisionInfo.hit) {
+    if (isSelectingEdge()) {
         noStroke(); fill(255, 255, 255, 200); ellipseMode(CENTER);
         ellipse(edgeCollisionInfo.closestPoint.x, edgeCollisionInfo.closestPoint.y, 10, 10);
     }
@@ -137,48 +138,61 @@ function draw() {
     text("fps: " + str(fps), 40, 60);
 }
 
+function createGhostNode(x, y, originNode) {
+    draggedNode = new PathNode(x, y);
+    draggedNode.__debug_id = -1;
+    spawningNode = originNode;
+}
+
 function mousePressed() {
     // Are we still dragging a delete box? Then do nothing.
     if (deleteBoxOrigin != null) return;
 
     // Left click on an existing node
-    if (isHoveringOverNode() && mouseButton == LEFT) {
+    if (isSelectingNode() && mouseButton == LEFT) {
         // Holding shift: move that node
         if (keyIsDown(SHIFT)) {
             isRepositioning = true;
-            draggedNode = closestNodeInfo.node;
+            draggedNode = nodeCollisionInfo.node;
         }
         // Normal click: start dragging out a new ghost node
         else {
-            draggedNode = new PathNode(mouseX, mouseY);
-            draggedNode.__debug_id = -420;
-            spawningNode = closestNodeInfo.node;
+            createGhostNode(mouseX, mouseY, nodeCollisionInfo.node);
         }
     }
     // Middle click on an existing node
-    else if (isHoveringOverNode() && mouseButton == CENTER) {
+    else if (isSelectingNode() && mouseButton == CENTER) {
         // Holding shift: toggle all blocking stats of successor nodes
         if (keyIsDown(SHIFT)) {
-            closestNodeInfo.node.out.forEach(next => {
+            nodeCollisionInfo.node.out.forEach(next => {
                 next.blocked = !next.blocked;
             });
         }
         // Normal click: toggle blocking state of this node
         else {
-            closestNodeInfo.node.blocked = !closestNodeInfo.node.blocked;
+            nodeCollisionInfo.node.blocked = !nodeCollisionInfo.node.blocked;
         }
     }
     // Right click on an existing node: delete that node
-    else if (isHoveringOverNode() && mouseButton == RIGHT) {
-        graph.deleteNode(closestNodeInfo.node);
+    else if (isSelectingNode() && mouseButton == RIGHT) {
+        graph.deleteNode(nodeCollisionInfo.node);
     }
-    // Ctrl-Left click in open space: create a new lonely node
-    else if (mouseButton == LEFT && keyIsDown(CONTROL)) {
-        graph.createNode(mouseX, mouseY);
+    // Left click on an edge: insert inline node and start dragging out new ghost node
+    else if (isSelectingEdge() && mouseButton == LEFT) {
+        let p = edgeCollisionInfo.closestPoint;
+        let inlineNode = graph.createNode(p.x, p.y);
+        edgeCollisionInfo.fromNode.deleteBranch(edgeCollisionInfo.toNode);
+        edgeCollisionInfo.fromNode.addBranch(inlineNode);
+        inlineNode.addBranch(edgeCollisionInfo.toNode);
+        createGhostNode(mouseX, mouseY, inlineNode);
     }
     // Right click on an edge: delete the edge
     else if (edgeCollisionInfo.hit && mouseButton == RIGHT) {
         edgeCollisionInfo.fromNode.deleteBranch(edgeCollisionInfo.toNode);
+    }
+    // Ctrl-Left click in open space: create a new lonely node
+    else if (mouseButton == LEFT && keyIsDown(CONTROL)) {
+        graph.createNode(mouseX, mouseY);
     }
     // Right click in open space: start selecting nodes for deletion
     else if (mouseButton == RIGHT) {
@@ -199,10 +213,10 @@ function mouseReleased() {
             // If we release when dragging an existing node we just drop it
             isRepositioning = false;
         }
-        else if (isHoveringOverNode()) {
+        else if (isSelectingNode()) {
             // If we drag a new ghost node onto an existing node  we create the connection 
             // from the spawning node to the existing node
-            spawningNode.addBranch(closestNodeInfo.node);
+            spawningNode.addBranch(nodeCollisionInfo.node);
         } 
         else {
             // If we drag a ghost node into open space, we add it to the
