@@ -67,6 +67,7 @@ function createAgents() {
         agent.vmax = Math.random() * 50 + 75;
         agent.col = randomShadeOfBlue();
         agent.setTarget(getRandomArrayItem(graph.nodes));
+        agent.pos = createVector(agent.targetNode.pos.x, agent.targetNode.pos.y);
         agents.push(agent);
     }
 }
