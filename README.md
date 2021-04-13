@@ -24,22 +24,23 @@ While travelling towards a node, the agent reserves this connection. A connectio
 deciding on a new path, agents will consider reserved connections as blocked. The reservation is removed once the
 reserving agent starts moving along another connection. This way collisions can be avoided.
 
+If at any point the node which an agent consideres its target gets deleted, the agent will consider the nearest node to
+be the new target.
+
 ## Controls
 
 Left click on a node to drag out a new connected node. Drag it onto an existing node to create 
 a connection to that node instead.
-You can also drag out new nodes from a connection. This splits the connection and creates a new node where you
-dragged it out.
-A new node can also be dragged onto a connection. This also splits the connection and creates a new node.
-Simply clicking onto a connection inserts a node into the path.
+Simply clicking onto a connection inserts a node into the path. If you keep dragging out, you can draw out
+a new node or connection, just like dragging out from a node.
+A new node can be dragged onto a connection too. This also inserts a node into the path at that point and
+then creates a connection to it.
 
-Hold shift and left click a node to drag it.
+Hold shift and left click a node to just move it around.
 
-Hold control and left click anywhere in open space to create a new node without connections.
+Hold control and left click anywhere in open space to create a new node without any connections.
 
-Right click a node or connection to delete it.
-
-Right click and drag anywhere to delete multiple nodes at once.
+Right click a node or connection to delete it. Right click and drag anywhere to delete multiple nodes at once.
 
 Middle click on a node to block or free its ingoing connections.
 Hold shift and middle click on a node to toggle all outgoing connections as blocked instead (it actually toggles the
