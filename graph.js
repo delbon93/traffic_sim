@@ -7,11 +7,17 @@ class PathNode {
         this.in = [];
         this.__debug_id = -1;
         this.blocked = false;
-        console.log(this.blocked);
+        this.reservedBy = null;
     }
 
-    get outUnblocked () {
-        return this.out.filter(node => !node.blocked);
+    getUnblockedBranches (ignoreReserved = false) {
+        return this.out.filter(
+            node => {
+                if (node.blocked) return false;
+                if (node.reservedBy != null) return ignoreReserved;
+                return true;
+            }
+        );
     }
 
     set next(next) {
@@ -48,6 +54,7 @@ class PathNode {
 
     draw() {
         let blockedCol = color(255, 255, 0, 150);
+        let reservedCol = color(50, 50, 255, 125);
         let defaultCol = this.isControlNode ? color (0, 255, 0, 100) : color (255, 0, 0, 100);
         let col = this.blocked ? blockedCol : defaultCol;
         stroke(col); fill(col);
@@ -64,8 +71,11 @@ class PathNode {
                 let arrowBaseLength = 0;
                 stroke(defaultCol);
                 if (next.blocked) {
-                    arrowBaseLength = 20;
+                    arrowBaseLength = 15;
                     stroke(blockedCol);
+                }
+                else if (next.reservedBy != null) {
+                    stroke(reservedCol);
                 }
                 drawArrow(this.pos, next.pos, PathNode.RADIUS + 5, arrowBaseLength);
             });

@@ -5,7 +5,6 @@ class TrafficAgent {
         this.right = createVector(0, 1);
         this.vmax = 15.0;
         this.targetNode = null;
-        this.waitingForPath = false;
     }
 
     setTarget(targetNode) {
@@ -20,6 +19,7 @@ class TrafficAgent {
     }
 
     move(delta) {
+        if (delta < 0.001) return;
         let speed = this.vmax / delta;
         let step = p5.Vector.mult(this.dir, speed);
         this.pos.add(step.x, step.y);
@@ -48,8 +48,11 @@ class TrafficAgent {
         let distanceThreshold = 5;
 
         if (p5.Vector.sub(this.targetNode.pos, this.pos).mag() < distanceThreshold) {
-            if (this.targetNode.outUnblocked.length > 0) {
-                this.targetNode = getRandomArrayItem(this.targetNode.outUnblocked);
+            let possibleBranches = this.targetNode.getUnblockedBranches()
+            if (possibleBranches.length > 0) {
+                this.targetNode.reservedBy = null;
+                this.targetNode = getRandomArrayItem(possibleBranches);
+                this.targetNode.reservedBy = this;
             }
         }
         else {

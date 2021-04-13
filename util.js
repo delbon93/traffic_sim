@@ -24,7 +24,9 @@ function drawArrow(from, to, margin, baseLength = 0) {
     right.rotate(HALF_PI);
     let baseLeft = p5.Vector.sub(p1, p5.Vector.mult(right, baseLength / 2));
     let baseRight = p5.Vector.add(p1, p5.Vector.mult(right, baseLength / 2));
+    strokeWeight(3);
     line(baseLeft.x, baseLeft.y, baseRight.x, baseRight.y);
+    strokeWeight(2);
 
     line(p1.x, p1.y, p2.x, p2.y);
     dir.rotate(headAngle);

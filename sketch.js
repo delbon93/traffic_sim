@@ -57,18 +57,21 @@ function createGraph() {
     outerNodes[outerNodes.length - 1].addBranch(outerNodes[0]);
 }
 
-function setup() {
-    createCanvas(1280, 900);
-    disableContextMenu();
-
-    createGraph();
-
+function createAgents() {
     for (let i = 0; i < 30; i++) {
         let agent = new TrafficAgent(640, 450);
         agent.vmax = Math.random() * 15 + 10;
         agent.setTarget(getRandomArrayItem(graph.nodes));
         agents.push(agent);
     }
+}
+
+function setup() {
+    createCanvas(1280, 900);
+    disableContextMenu();
+
+    createGraph();
+    createAgents();
 
     console.log("Nodes: " + graph.nodes.length, "Agents: " + agents.length);
 }
@@ -77,8 +80,7 @@ function draw() {
     frameRate(120);
     background(24);
 
-    graph.draw();
-
+    // Draw the ghost node and the ghost arrow pointing to it
     if (draggedNode != null) {
         draggedNode.draw();
         if (spawningNode != null) {
@@ -86,21 +88,28 @@ function draw() {
             drawArrow(spawningNode.pos, draggedNode.pos, PathNode.RADIUS + 5);
         }
     }
+
+    // Draw the delete box if it exists
     if (deleteBoxOrigin != null) {
         fill(255, 0, 0, 30); stroke(255, 0, 0);
         rectMode(CORNER); rect(deleteBoxOrigin.x, deleteBoxOrigin.y, mouseX - deleteBoxOrigin.x, mouseY - deleteBoxOrigin.y);
     }
 
+    // If there is a delete box, highlight all nodes that will be deleted once released
     getAllNodesInDeleteBox().forEach(node => {
         noFill(); stroke(255, 0, 0);
         circle(node.pos.x, node.pos.y, PathNode.RADIUS * 2 + 5);
     });
 
+    // Determine if the mouse is close enough to a node to interact with
     closestNodeInfo = graph.getClosestNodeTo(mouseX, mouseY);
     if (isHoveringOverNode()) {
         noFill(); stroke(200, 200, 200);
         circle(closestNodeInfo.node.pos.x, closestNodeInfo.node.pos.y, PathNode.RADIUS * 2 + 5);
     }
+    
+    // Draw stuff
+    graph.draw();
 
     agents.forEach(agent => {
         agent.update(deltaTime);
@@ -109,34 +118,45 @@ function draw() {
 }
 
 function mousePressed() {
+    // Are we still dragging a delete box? Then do nothing.
     if (deleteBoxOrigin != null) return;
+
+    // Left click on an existing node
     if (isHoveringOverNode() && mouseButton == LEFT) {
+        // Holding shift: move that node
         if (keyIsDown(SHIFT)) {
             isRepositioning = true;
             draggedNode = closestNodeInfo.node;
         }
+        // Normal click: start dragging out a new ghost node
         else {
             draggedNode = new PathNode(mouseX, mouseY);
             draggedNode.__debug_id = -420;
             spawningNode = closestNodeInfo.node;
         }
     }
+    // Middle click on an existing node
     else if (isHoveringOverNode() && mouseButton == CENTER) {
+        // Holding shift: toggle all blocking stats of successor nodes
         if (keyIsDown(SHIFT)) {
             closestNodeInfo.node.out.forEach(next => {
                 next.blocked = !next.blocked;
             });
         }
+        // Normal click: toggle blocking state of this node
         else {
             closestNodeInfo.node.blocked = !closestNodeInfo.node.blocked;
         }
     }
+    // Right click on an existing node: delete that node
     else if (isHoveringOverNode() && mouseButton == RIGHT) {
         graph.deleteNode(closestNodeInfo.node);
     }
+    // Ctrl-Left click in open space: create a new lonely node
     else if (mouseButton == LEFT && keyIsDown(CONTROL)) {
         graph.createNode(mouseX, mouseY);
     }
+    // Right click in open space: start selecting nodes for deletion
     else if (mouseButton == RIGHT) {
         deleteBoxOrigin = createVector(mouseX, mouseY);
     }
@@ -149,25 +169,36 @@ function mouseDragged() {
 }
 
 function mouseReleased() {
+    // Are we dragging a node?
     if (draggedNode != null) {
         if (isRepositioning) {
+            // If we release when dragging an existing node we just drop it
             isRepositioning = false;
         }
         else if (isHoveringOverNode()) {
+            // If we drag a new ghost node onto an existing node...
             if (keyIsDown(CONTROL)) {
+                // ... we delete the connection if holding CTRL
                 spawningNode.deleteBranch(closestNodeInfo.node);
             }
             else {
+                // ... we create the connection from the spawning node 
+                // to the existing node
                 spawningNode.addBranch(closestNodeInfo.node);
             }
         } 
         else {
+            // If we drag a ghost node into open space, we add it to the
+            // graph as a new node and create a connection to it from
+            // the spawning node
             spawningNode.addBranch(draggedNode);
             graph.addNode(draggedNode);
         }
+        // In any case, after releasing we clear the cached nodes
         spawningNode = null;
         draggedNode = null;
     }
+    // Are we dragging the delete box? Kill all nodes inside! >:]
     if (deleteBoxOrigin != null) {
         getAllNodesInDeleteBox().forEach(node => {
             graph.deleteNode(node);
