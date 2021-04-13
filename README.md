@@ -1,6 +1,8 @@
 # traffic_sim
 A simple agent based traffic simulation using Javascript and p5.js
 
+[Click here](delbon93.github.io/traffic_sim/index.html) to try it in your browser!
+
 ## Current features
 
 This simulation is based on a directed graph, with edges being connections agents can move along. Nodes are considered
