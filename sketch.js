@@ -217,7 +217,17 @@ function mouseReleased() {
             // If we drag a new ghost node onto an existing node  we create the connection 
             // from the spawning node to the existing node
             spawningNode.addBranch(nodeCollisionInfo.node);
-        } 
+        }
+        else if (isSelectingEdge()) {
+            // If we drag a ghost node onto an edge we create an inline node at that point
+            // and create a connection from the spawning node to that inline node
+            let p = edgeCollisionInfo.closestPoint;
+            let inlineNode = graph.createNode(p.x, p.y);
+            edgeCollisionInfo.fromNode.deleteBranch(edgeCollisionInfo.toNode);
+            edgeCollisionInfo.fromNode.addBranch(inlineNode);
+            inlineNode.addBranch(edgeCollisionInfo.toNode);
+            spawningNode.addBranch(inlineNode);
+        }
         else {
             // If we drag a ghost node into open space, we add it to the
             // graph as a new node and create a connection to it from
