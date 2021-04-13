@@ -60,7 +60,7 @@ function createGraph() {
 
 function createAgents() {
     for (let i = 0; i < 30; i++) {
-        let agent = new TrafficAgent(640, 450);
+        let agent = new TrafficAgent(640, 450, graph);
         agent.vmax = Math.random() * 15 + 10;
         agent.setTarget(getRandomArrayItem(graph.nodes));
         agents.push(agent);

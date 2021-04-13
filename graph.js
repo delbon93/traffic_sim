@@ -8,6 +8,7 @@ class PathNode {
         this.__debug_id = -1;
         this.blocked = false;
         this.reservedBy = null;
+        this.active = false;
     }
 
     getUnblockedBranches (ignoreReserved = false) {
@@ -105,6 +106,7 @@ class Graph {
         this.nodes.push(node);
         node.__debug_id = this.__debug_id_counter;
         this.__debug_id_counter++;
+        node.active = true;
     }
 
     createNode(x, y) {
@@ -114,6 +116,7 @@ class Graph {
     }
 
     deleteNode(node) {
+        node.active = false;
         node.in.forEach(prev => {
             prev.deleteBranch(node, false);
         });

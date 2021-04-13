@@ -16,7 +16,6 @@ function drawArrow(from, to, margin, baseLength = 0) {
     let dir = p5.Vector.sub(to, from);
     dir.normalize();
 
-    
     let p1 = p5.Vector.add(from, p5.Vector.mult(dir, margin));
     let p2 = p5.Vector.sub(to, p5.Vector.mult(dir, margin));
     

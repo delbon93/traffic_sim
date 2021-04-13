@@ -1,10 +1,11 @@
 class TrafficAgent {
-    constructor(x, y) {
+    constructor(x, y, graph) {
         this.pos = createVector(x, y);
         this.dir = createVector(1, 0);
         this.right = createVector(0, 1);
         this.vmax = 15.0;
         this.targetNode = null;
+        this.graph = graph;
     }
 
     setTarget(targetNode) {
@@ -44,6 +45,8 @@ class TrafficAgent {
 
     update(delta) {
         if (this.targetNode == null) return;
+        if (!this.targetNode.active) 
+            this.targetNode = this.graph.getClosestNodeTo(this.pos.x, this.pos.y).node;
 
         let distanceThreshold = 5;
 
