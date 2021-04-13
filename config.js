@@ -1,0 +1,2 @@
+let CANVAS_WIDTH = 1280;
+let CANVAS_HEIGHT = 900;

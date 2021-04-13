@@ -71,7 +71,7 @@ function createAgents() {
 }
 
 function setup() {
-    createCanvas(1280, 900);
+    createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
     disableContextMenu();
 
     createGraph();
