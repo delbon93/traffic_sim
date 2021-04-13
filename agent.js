@@ -6,6 +6,7 @@ class TrafficAgent {
         this.vmax = 15.0;
         this.targetNode = null;
         this.graph = graph;
+        this.col = color(255);
     }
 
     setTarget(targetNode) {
@@ -33,9 +34,10 @@ class TrafficAgent {
         let l = p5.Vector.sub(base, p5.Vector.mult(this.right, width / 2));
         let r = p5.Vector.add(base, p5.Vector.mult(this.right, width / 2));
         let tip = p5.Vector.add(this.pos, p5.Vector.mult(this.dir, length / 2));
-        strokeWeight(3);
-        stroke(90, 90, 225);
-        fill(120, 120, 255);
+        strokeWeight(2);
+        stroke(this.col);
+        
+        fill(this.col);
         beginShape(TRIANGLES); 
         vertex(l.x, l.y); vertex(r.x, r.y); vertex(tip.x, tip.y); 
         endShape(CLOSE);

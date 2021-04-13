@@ -56,3 +56,18 @@ function average(array) {
     });
     return a / array.length;
 }
+
+function randomColor() {
+    let variation = 180; let base = 40;
+    let r = Math.random() * variation + base;
+    let g = Math.random() * variation + base;
+    let b = Math.random() * variation + base;
+    return color(r, g, b);
+}
+
+function randomShadeOfBlue() {
+    let s = Math.random();
+    let shade1 = color(20, 20, 230);
+    let shade2 = color(230, 20, 230);
+    return lerpColor(shade1, shade2, s);
+}
