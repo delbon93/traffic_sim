@@ -41,21 +41,21 @@ node too will be reserved). This allows agents to reserve an entire multi-segmen
 
 ## Controls
 
-Left click on a node to drag out a new connected node. Drag it onto an existing node to create 
+- Left click on a node to drag out a new connected node. Drag it onto an existing node to create 
 a connection to that node instead.
 Simply clicking onto a connection inserts a node into the path. If you keep dragging out, you can draw out
 a new node or connection, just like dragging out from a node.
 A new node can be dragged onto a connection too. This also inserts a node into the path at that point and
 then creates a connection to it.
 
-Hold shift and left click a node to just move it around.
+- Hold shift and left click a node to just move it around.
 
-Hold control and left click anywhere in open space to create a new node without any connections.
+- Hold control and left click anywhere in open space to create a new node without any connections.
 
-Right click a node or connection to delete it. Right click and drag anywhere to delete multiple nodes at once.
+- Right click a node or connection to delete it. Right click and drag anywhere to delete multiple nodes at once.
 
-Middle click on a node to block or free its ingoing connections.
+- Middle click on a node to block or free its ingoing connections.
 Hold shift and middle click on a node to toggle all outgoing connections as blocked instead (it actually toggles the
 blocking state of all nodes this node has outgoing connections to).
 
-Hover over a node and press 'd' to toggle this node being deferred.
+- Hover over a node and press 'd' to toggle this node being deferred.
