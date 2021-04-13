@@ -9,21 +9,38 @@ class PathNode {
         this.blocked = false;
         this.reservedBy = null;
         this.active = false;
+        this.deferred = false;
     }
 
-    getUnblockedBranches (ignoreReserved = false) {
+    isBlocked(ignoreReserved = false) {
+        let result = false;
+        if (this.blocked) result = true;
+        else if (this.reservedBy != null) result = !ignoreReserved;
+
+        if (!result && this.deferred) {
+            result = true;
+            this.out.forEach(node => {
+                result = result && node.isBlocked(ignoreReserved);
+            });
+        }
+        return result;
+    }
+
+    getUnblockedBranches (agent, ignoreReserved = false) {
         return this.out.filter(
-            node => {
-                if (node.blocked) return false;
-                if (node.reservedBy != null) return ignoreReserved;
-                return true;
-            }
+            node => { return !node.isBlocked(ignoreReserved) || node.reservedBy === agent; }
         );
     }
 
-    set next(next) {
-        this.out = [next];
-        if (next != null) next.in.push(this);
+    reserve(agent) {
+        this.reservedBy = agent;
+        if (this.deferred && this.out.length === 1) {
+            this.out[0].reserve(agent);
+        }
+    }
+
+    clearReserved() {
+        this.reservedBy = null;
     }
 
     get isPathNode() { return this.out.length < 2; }
@@ -59,7 +76,8 @@ class PathNode {
         let defaultCol = this.isControlNode ? color (0, 255, 0, 100) : color (255, 0, 0, 100);
         let col = this.blocked ? blockedCol : defaultCol;
         stroke(col); fill(col);
-        strokeWeight(1);
+        if (this.deferred) stroke(255, 255, 0);
+        strokeWeight(2);
         if (this.isControlNode) {
             rectMode(CENTER);
             rect(this.pos.x, this.pos.y, PathNode.RADIUS * 2, PathNode.RADIUS * 2);
@@ -67,11 +85,15 @@ class PathNode {
         else {
             circle(this.pos.x, this.pos.y, PathNode.RADIUS * 2);
         }
+        // if (this.deferred) {
+        //     noStroke(); fill(255, 255, 0);
+        //     circle(this.pos.x, this.pos.y, PathNode.RADIUS * 1.2);
+        // }
         if (this.out.length > 0) {
             this.out.forEach(next => {
                 let arrowBaseLength = 0;
                 stroke(defaultCol);
-                if (next.blocked) {
+                if (next.isBlocked() && next.reservedBy == null) {
                     arrowBaseLength = 15;
                     stroke(blockedCol);
                 }
