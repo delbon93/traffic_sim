@@ -8,6 +8,7 @@ let draggedNode = null;
 let isRepositioning = false;
 let deleteBoxOrigin = null;
 let closestNodeInfo;
+let edgeCollisionInfo;
 
 let isHoveringOverNode = () => closestNodeInfo.distance < (PathNode.RADIUS * 2 + 5);
 
@@ -107,6 +108,13 @@ function draw() {
         noFill(); stroke(200, 200, 200);
         circle(closestNodeInfo.node.pos.x, closestNodeInfo.node.pos.y, PathNode.RADIUS * 2 + 5);
     }
+
+    // Determine if the mouse is on an edge
+    edgeCollisionInfo = getEdgeCollision(graph, mouseX, mouseY, 10, PathNode.RADIUS * 6);
+    if (edgeCollisionInfo.hit) {
+        noStroke(); fill(255, 255, 255, 200); ellipseMode(CENTER);
+        ellipse(edgeCollisionInfo.closestPoint.x, edgeCollisionInfo.closestPoint.y, 10, 10);
+    }
     
     // Draw stuff
     graph.draw();
@@ -156,6 +164,10 @@ function mousePressed() {
     else if (mouseButton == LEFT && keyIsDown(CONTROL)) {
         graph.createNode(mouseX, mouseY);
     }
+    // Right click on an edge: delete the edge
+    else if (edgeCollisionInfo.hit && mouseButton == RIGHT) {
+        edgeCollisionInfo.fromNode.deleteBranch(edgeCollisionInfo.toNode);
+    }
     // Right click in open space: start selecting nodes for deletion
     else if (mouseButton == RIGHT) {
         deleteBoxOrigin = createVector(mouseX, mouseY);
@@ -176,16 +188,9 @@ function mouseReleased() {
             isRepositioning = false;
         }
         else if (isHoveringOverNode()) {
-            // If we drag a new ghost node onto an existing node...
-            if (keyIsDown(CONTROL)) {
-                // ... we delete the connection if holding CTRL
-                spawningNode.deleteBranch(closestNodeInfo.node);
-            }
-            else {
-                // ... we create the connection from the spawning node 
-                // to the existing node
-                spawningNode.addBranch(closestNodeInfo.node);
-            }
+            // If we drag a new ghost node onto an existing node  we create the connection 
+            // from the spawning node to the existing node
+            spawningNode.addBranch(closestNodeInfo.node);
         } 
         else {
             // If we drag a ghost node into open space, we add it to the

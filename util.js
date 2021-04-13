@@ -44,3 +44,7 @@ function drawArrow(from, to, margin, baseLength = 0) {
 function getRandomArrayItem(array) {
     return array[Math.floor((Math.random()*array.length))];
 }
+
+function clamp(x, lower, upper) {
+    return min(max(x, lower), upper);
+}
