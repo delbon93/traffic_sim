@@ -46,18 +46,22 @@ class TrafficAgent {
     }
 
     update(delta) {
-        if (this.targetNode == null) return;
+        if (this.targetNode === null) {
+            if (this.graph.nodes.length === 0) return;
+            this.targetNode = this.graph.getClosestNodeTo(this.pos.x, this.pos.y).node;
+        }
         if (!this.targetNode.active) 
             this.targetNode = this.graph.getClosestNodeTo(this.pos.x, this.pos.y).node;
+        if (this.targetNode === null) return; // Graph must be empty, hmmm...
 
         let distanceThreshold = 5;
 
         if (p5.Vector.sub(this.targetNode.pos, this.pos).mag() < distanceThreshold) {
-            let possibleBranches = this.targetNode.getUnblockedBranches()
+            let possibleBranches = this.targetNode.getUnblockedBranches(this);
             if (possibleBranches.length > 0) {
-                this.targetNode.reservedBy = null;
+                this.targetNode.clearReserved();
                 this.targetNode = getRandomArrayItem(possibleBranches);
-                this.targetNode.reservedBy = this;
+                this.targetNode.reserve(this);
             }
         }
         else {
