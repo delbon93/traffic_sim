@@ -28,6 +28,9 @@ reserving agent starts moving along another connection. This way collisions can 
 
 Left click on a node to drag out a new connected node. Drag it onto an existing node to create 
 a connection to that node instead.
+You can also drag out new nodes from a connection. This splits the connection and creates a new node where you
+dragged it out.
+A new node can also be dragged onto a connection. This also splits the connection and creates a new node.
 
 Hold shift and left click a node to drag it.
 
