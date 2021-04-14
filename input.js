@@ -1,19 +1,11 @@
-function MousePressedEvent(x, y, mButtons, modKeys, collider = null) {
+function MousePressedEvent(x, y, mButtons, modKeys) {
     return { _type: MousePressedEvent, 
-        x: x, y: y, mButtons: mButtons, modKeys: modKeys,
-        collider: collider, hit: function() {
-            if (this.collider == null) return true;
-            return collider.hit(x, y);
-        }};
+        x: x, y: y, mButtons: mButtons, modKeys: modKeys};
 }
 
-function MouseReleasedEvent(x, y, mButtons, modKeys, collider = null) {
+function MouseReleasedEvent(x, y, mButtons, modKeys) {
     return { _type: MouseReleasedEvent, 
-        x: x, y: y, mButtons: mButtons, modKeys: modKeys,
-        collider: collider, hit: function() {
-            if (this.collider == null) return true;
-            return collider.hit(x, y);
-        }};
+        x: x, y: y, mButtons: mButtons, modKeys: modKeys};
 }
 
 
