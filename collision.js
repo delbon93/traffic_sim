@@ -1,22 +1,23 @@
-function createCircleCollider(r) {
+function createCircleCollider(parent, r) {
     return {
+        parent: parent,
         r: r,
-        point: function(offsetX, offsetY, x, y) {
-            let dx = x - offsetX;
-            let dy = y - offsetY;
+        hit: function(x, y) {
+            let dx = x - parent.pos.x;
+            let dy = y - parent.pos.y;
             return (dx * dx + dy * dy) <= this.r * this.r;
         }
     };
 }
 
-function createCapsuleCollider(x1, y1, x2, y2, r) {
+function createCapsuleCollider(parent, x1, y1, x2, y2, r) {
     return {
+        parent: parent,
         p1: createVector(x1, y1), p2: createVector(x2, y2), r: r,
-        point: function(offsetX, offsetY, x, y) {
+        hit: function(x, y) {
             let v = createVector(x, y);
-            let offset = createVector(offsetX, offsetY);
-            let from = p5.Vector.add(this.p1, offset);
-            let to = p5.Vector.add(this.p2, offset);
+            let from = p5.Vector.add(this.p1, parent.pos);
+            let to = p5.Vector.add(this.p2, parent.pos);
             let dir = p5.Vector.sub(from, to);
             let edgeLength = dir.mag();
             dir.normalize();
@@ -31,10 +32,10 @@ function createCapsuleCollider(x1, y1, x2, y2, r) {
 function getEdgeCollision(graph, x, y, distanceThreshold, margin = 0) {
     let p = createVector(x, y);
     result = {hit: false, distance: Infinity, closestPoint: null, fromNode: null, toNode: null};
-    graph.nodes.forEach(node => {
-        node.out.forEach(to => {
-            let x1 = min(to.pos.x, node.pos.x); let y1 = min(to.pos.y, node.pos.y);
-            let x2 = max(to.pos.x, node.pos.x); let y2 = max(to.pos.y, node.pos.y);
+    graph.nodes.some(node => {
+        node.out.some(to => {
+            let x1 = min(to.pos.x, node.pos.x) - distanceThreshold; let y1 = min(to.pos.y, node.pos.y) - distanceThreshold;
+            let x2 = max(to.pos.x, node.pos.x) + distanceThreshold; let y2 = max(to.pos.y, node.pos.y) + distanceThreshold;
             if (x >= x1 && x <= x2 && y >= y1 && y <= y2) {
                 let dir = p5.Vector.sub(to.pos, node.pos);
                 let edgeLength = dir.mag();
@@ -44,13 +45,14 @@ function getEdgeCollision(graph, x, y, distanceThreshold, margin = 0) {
                 let distanceToClosest = p5.Vector.sub(p, closest).mag();
                 if (distanceToClosest < distanceThreshold) {
                     result = {hit: true, distance: distanceToClosest, closestPoint: closest, fromNode: node, toNode: to};
-                    return;
+                    return true;
                 }
             }
         });
-        if (result.hit) return;
+        return result.hit;
     });
     return result;
+    
 }
 
 function getSwitchCollision(sw, x, y) {

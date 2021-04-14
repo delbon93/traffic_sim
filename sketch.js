@@ -29,6 +29,20 @@ function getAllNodesInDeleteBox() {
     return graph.getNodesInRect(x0, y0, x1, y1);
 }
 
+function constructNode(x, y) {
+    let node = graph.createNode(x, y);
+    node.onClickListener = function(event) {
+
+    };
+    INPUT_EVENT_MANAGER.subscribe(node.onClickListener);
+    return node;
+}
+
+function destructNode(node) {
+    graph.deleteNode(node);
+    INPUT_EVENT_MANAGER.unsubscribe(node.onClickListener);
+}
+
 function createGraph() {
     graph = new Graph();
     drawables.push(graph);
@@ -47,7 +61,7 @@ function createGraph() {
     for (let i = 0; i < resolution; i++) {
         // inner ring
         let pos = p5.Vector.add(origin, pointer);
-        let node = graph.createNode(pos.x, pos.y);
+        let node = constructNode(pos.x, pos.y);
         innerNodes.push(node);
         if (innerNodes.length > 1) {
             innerNodes[innerNodes.length - 2].addBranch(node);
@@ -56,7 +70,7 @@ function createGraph() {
 
         // outer ring
         pos = p5.Vector.add(origin, outerPointer);
-        node = graph.createNode(pos.x, pos.y);
+        node = constructNode(pos.x, pos.y);
         outerNodes.push(node);
         if (outerNodes.length > 1) {
             outerNodes[outerNodes.length - 2].addBranch(node);
@@ -168,6 +182,10 @@ function keyPressed() {
 }
 
 function mousePressed() {
+    INPUT_EVENT_MANAGER.raise(MousePressedEvent(mouseX, mouseY,
+        {left: mouseButton === LEFT, right: mouseButton === RIGHT, middle: mouseButton === CENTER},
+        {shift: keyIsDown(SHIFT), control: keyIsDown(CONTROL), alt: keyIsDown(ALT)}));
+
     // Are we still dragging a delete box? Then do nothing.
     if (deleteBoxOrigin != null) return;
 
@@ -198,12 +216,12 @@ function mousePressed() {
     }
     // Right click on an existing node: delete that node
     else if (isSelectingNode() && mouseButton === RIGHT) {
-        graph.deleteNode(nodeCollisionInfo.node);
+        destructNode(nodeCollisionInfo.node);
     }
     // Left click on an edge: insert inline node and start dragging out new ghost node
     else if (isSelectingEdge() && mouseButton === LEFT) {
         let p = edgeCollisionInfo.closestPoint;
-        let inlineNode = graph.createNode(p.x, p.y);
+        let inlineNode = constructNode(p.x, p.y);
         edgeCollisionInfo.fromNode.deleteBranch(edgeCollisionInfo.toNode);
         edgeCollisionInfo.fromNode.addBranch(inlineNode);
         inlineNode.addBranch(edgeCollisionInfo.toNode);
@@ -215,7 +233,7 @@ function mousePressed() {
     }
     // Ctrl-Left click in open space: create a new lonely node
     else if (mouseButton === LEFT && keyIsDown(CONTROL)) {
-        graph.createNode(mouseX, mouseY);
+        constructNode(mouseX, mouseY);
     }
     // Right click in open space: start selecting nodes for deletion
     else if (mouseButton === RIGHT) {
@@ -236,6 +254,10 @@ function mouseDragged() {
 }
 
 function mouseReleased() {
+    INPUT_EVENT_MANAGER.raise(MouseReleasedEvent(mouseX, mouseY,
+        {left: mouseButton === LEFT, right: mouseButton === RIGHT, middle: mouseButton === CENTER},
+        {shift: keyIsDown(SHIFT), control: keyIsDown(CONTROL), alt: keyIsDown(ALT)}));
+
     // Are we dragging a node?
     if (draggedNode != null) {
         if (isRepositioning) {
@@ -251,7 +273,7 @@ function mouseReleased() {
             // If we drag a ghost node onto an edge we create an inline node at that point
             // and create a connection from the spawning node to that inline node
             let p = edgeCollisionInfo.closestPoint;
-            let inlineNode = graph.createNode(p.x, p.y);
+            let inlineNode = constructNode(p.x, p.y);
             edgeCollisionInfo.fromNode.deleteBranch(edgeCollisionInfo.toNode);
             edgeCollisionInfo.fromNode.addBranch(inlineNode);
             inlineNode.addBranch(edgeCollisionInfo.toNode);
@@ -271,7 +293,7 @@ function mouseReleased() {
     // Are we dragging the delete box? Kill all nodes inside! >:]
     if (deleteBoxOrigin != null) {
         getAllNodesInDeleteBox().forEach(node => {
-            graph.deleteNode(node);
+            destructNode(node);
         });
         deleteBoxOrigin = null;
     }
