@@ -101,13 +101,6 @@ class PathNode {
         }
     }
 
-    printDebugInfo() {
-        console.log("Node #" + this.__debug_id 
-            + "\n\tpos=[" + this.pos.x + ", " + this.pos.y 
-            + "]\n\tin=[" + this.in 
-            + "]\n\tout=[" + this.out + "]");
-    }
-
     toString() {
         return "#" + this.__debug_id;
     }

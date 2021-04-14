@@ -29,12 +29,41 @@ function getAllNodesInDeleteBox() {
     return graph.getNodesInRect(x0, y0, x1, y1);
 }
 
-function constructNode(x, y) {
-    let node = graph.createNode(x, y);
+function constructNode(x, y, inGraph = true) {
+    let node = new PathNode(x, y);
+    if (inGraph) graph.addNode(node);
+    node.collider = createCircleCollider(node, PathNode.RADIUS * 2 + 5);
     node.onClickListener = function(event) {
+        if (!node.collider.hit(event.x, event.y)) return false;
 
+        if (event.mButtons.left) {
+            if (event.modKeys.shift) {
+                isRepositioning = true;
+                draggedNode = node;
+            }
+            else {
+                createGhostNode(event.x, event.y, node);
+            }
+            return true;
+        }
+
+        if (event.mButtons.middle) {
+            if (event.modKeys.shift) {
+                node.out.forEach(next => {
+                    next.blocked = !next.blocked;
+                });
+            }
+            else {
+                node.blocked = !node.blocked;
+            }
+            return true;
+        }
+
+        if (event.mButtons.right) {
+            destructNode(node);
+        }
     };
-    INPUT_EVENT_MANAGER.subscribe(node.onClickListener);
+    INPUT_EVENT_MANAGER.subscribe(MousePressedEvent, node.onClickListener);
     return node;
 }
 
@@ -170,7 +199,7 @@ function draw() {
 }
 
 function createGhostNode(x, y, originNode) {
-    draggedNode = new PathNode(x, y);
+    draggedNode = constructNode(x, y, false);
     draggedNode.__debug_id = -1;
     spawningNode = originNode;
 }
@@ -189,37 +218,7 @@ function mousePressed() {
     // Are we still dragging a delete box? Then do nothing.
     if (deleteBoxOrigin != null) return;
 
-    // Left click on an existing node
-    if (isSelectingNode() && mouseButton === LEFT) {
-        // Holding shift: move that node
-        if (keyIsDown(SHIFT)) {
-            isRepositioning = true;
-            draggedNode = nodeCollisionInfo.node;
-        }
-        // Normal click: start dragging out a new ghost node
-        else {
-            createGhostNode(mouseX, mouseY, nodeCollisionInfo.node);
-        }
-    }
-    // Middle click on an existing node
-    else if (isSelectingNode() && mouseButton === CENTER) {
-        // Holding shift: toggle all blocking stats of successor nodes
-        if (keyIsDown(SHIFT)) {
-            nodeCollisionInfo.node.out.forEach(next => {
-                next.blocked = !next.blocked;
-            });
-        }
-        // Normal click: toggle blocking state of this node
-        else {
-            nodeCollisionInfo.node.blocked = !nodeCollisionInfo.node.blocked;
-        }
-    }
-    // Right click on an existing node: delete that node
-    else if (isSelectingNode() && mouseButton === RIGHT) {
-        destructNode(nodeCollisionInfo.node);
-    }
-    // Left click on an edge: insert inline node and start dragging out new ghost node
-    else if (isSelectingEdge() && mouseButton === LEFT) {
+    if (isSelectingEdge() && mouseButton === LEFT) {
         let p = edgeCollisionInfo.closestPoint;
         let inlineNode = constructNode(p.x, p.y);
         edgeCollisionInfo.fromNode.deleteBranch(edgeCollisionInfo.toNode);
