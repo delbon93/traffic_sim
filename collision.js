@@ -19,3 +19,8 @@ function getEdgeCollision(graph, x, y, distanceThreshold, margin = 0) {
     });
     return result;
 }
+
+function getSwitchCollision(sw, x, y) {
+    let p = createVector(x, y);
+    return p5.Vector.sub(p, sw.pos).mag() < Switch.RADIUS;
+}
