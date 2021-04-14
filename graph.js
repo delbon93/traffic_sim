@@ -85,10 +85,6 @@ class PathNode {
         else {
             circle(this.pos.x, this.pos.y, PathNode.RADIUS * 2);
         }
-        // if (this.deferred) {
-        //     noStroke(); fill(255, 255, 0);
-        //     circle(this.pos.x, this.pos.y, PathNode.RADIUS * 1.2);
-        // }
         if (this.out.length > 0) {
             this.out.forEach(next => {
                 let arrowBaseLength = 0;

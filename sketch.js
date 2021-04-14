@@ -1,9 +1,12 @@
 "use strict";
 
+let drawables = [];
+
 let fps_values = [];
 
 let graph;
 let agents = [];
+let switches = [];
 
 let spawningNode = null;
 let draggedNode = null;
@@ -11,6 +14,8 @@ let isRepositioning = false;
 let deleteBoxOrigin = null;
 let nodeCollisionInfo;
 let edgeCollisionInfo;
+
+let __testSwitch;
 
 let isSelectingNode = () => nodeCollisionInfo.distance < (PathNode.RADIUS * 2 + 5);
 let isSelectingEdge = () => edgeCollisionInfo.hit;
@@ -26,6 +31,7 @@ function getAllNodesInDeleteBox() {
 
 function createGraph() {
     graph = new Graph();
+    drawables.push(graph);
     let radius = 300;
     let outerRadius = 340;
     let resolution = 20;
@@ -69,6 +75,7 @@ function createAgents() {
         agent.setTarget(getRandomArrayItem(graph.nodes));
         agent.pos = createVector(agent.targetNode.pos.x, agent.targetNode.pos.y);
         agents.push(agent);
+        drawables.push(agent);
     }
 }
 
@@ -78,6 +85,13 @@ function setup() {
 
     createGraph();
     createAgents();
+
+    __testSwitch = new Switch(CENTER_X, CENTER_Y);
+    for(let i = 0; i < 3; i++) {
+        __testSwitch.addNode(getRandomArrayItem(graph.nodes));
+    }
+    drawables.push(__testSwitch);
+    switches.push(__testSwitch);
 
     console.log("Nodes: " + graph.nodes.length, "Agents: " + agents.length);
 }
@@ -120,13 +134,15 @@ function draw() {
         noStroke(); fill(255, 255, 255, 200); ellipseMode(CENTER);
         ellipse(edgeCollisionInfo.closestPoint.x, edgeCollisionInfo.closestPoint.y, 10, 10);
     }
-    
-    // Draw stuff
-    graph.draw();
 
+    // Update agents
     agents.forEach(agent => {
         agent.update(deltaTime);
-        agent.draw();
+    });
+    
+    // Draw stuff
+    drawables.forEach(drawable => {
+        drawable.draw();
     });
 
     // DEBUG: draw delta time
@@ -205,6 +221,12 @@ function mousePressed() {
     else if (mouseButton === RIGHT) {
         deleteBoxOrigin = createVector(mouseX, mouseY);
     }
+
+    switches.forEach(sw => {
+        if (getSwitchCollision(sw, mouseX, mouseY)) {
+            sw.press();
+        }
+    });
 }
 
 function mouseDragged() {
