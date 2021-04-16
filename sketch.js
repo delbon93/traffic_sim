@@ -33,13 +33,14 @@ function constructNode(x, y, inGraph = true) {
     let node = new PathNode(x, y);
     if (inGraph) graph.addNode(node);
     node.collider = createCircleCollider(node, PathNode.RADIUS * 2 + 5);
-    node.onClickListener = function(event) {
+    node.onPressedListener = function(event) {
         if (!node.collider.hit(event.x, event.y)) return false;
 
         if (event.mButtons.left) {
             if (event.modKeys.shift) {
                 isRepositioning = true;
                 draggedNode = node;
+                node.dragged = true;
             }
             else {
                 createGhostNode(event.x, event.y, node);
@@ -61,15 +62,34 @@ function constructNode(x, y, inGraph = true) {
 
         if (event.mButtons.right) {
             destructNode(node);
+            return true;
         }
+        return false;
     };
-    INPUT_EVENT_MANAGER.subscribe(MousePressedEvent, node.onClickListener);
+    INPUT_EVENT_MANAGER.subscribe(MousePressedEvent, node.onPressedListener);
+    node.onDraggedListener = function(event) {
+        if (!node.dragged) return false;
+        node.pos = createVector(event.x, event.y);
+        return true;
+    };
+    INPUT_EVENT_MANAGER.subscribe(MouseDraggedEvent, node.onDraggedListener);
+    node.onReleasedListener = function(event) {
+        if (node.dragged) {
+            node.dragged = false;
+            draggedNode = null
+            return true;
+        }
+        return false;
+    };
+    INPUT_EVENT_MANAGER.subscribe(MouseReleasedEvent, node.onReleasedListener);
     return node;
 }
 
 function destructNode(node) {
     graph.deleteNode(node);
-    INPUT_EVENT_MANAGER.unsubscribe(node.onClickListener);
+    INPUT_EVENT_MANAGER.unsubscribe(node.onPressedListener);
+    INPUT_EVENT_MANAGER.unsubscribe(node.onDraggedListener);
+    INPUT_EVENT_MANAGER.unsubscribe(node.onReleasedListener);
 }
 
 function createGraph() {
@@ -200,6 +220,7 @@ function draw() {
 
 function createGhostNode(x, y, originNode) {
     draggedNode = constructNode(x, y, false);
+    draggedNode.dragged = true;
     draggedNode.__debug_id = -1;
     spawningNode = originNode;
 }
@@ -247,9 +268,9 @@ function mousePressed() {
 }
 
 function mouseDragged() {
-    if (draggedNode != null) {
-        draggedNode.pos = createVector(mouseX, mouseY);
-    }
+    INPUT_EVENT_MANAGER.raise(MouseDraggedEvent(mouseX, mouseY,
+        {left: mouseButton === LEFT, right: mouseButton === RIGHT, middle: mouseButton === CENTER},
+        {shift: keyIsDown(SHIFT), control: keyIsDown(CONTROL), alt: keyIsDown(ALT)}));
 }
 
 function mouseReleased() {

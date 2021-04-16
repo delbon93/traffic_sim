@@ -3,6 +3,11 @@ function MousePressedEvent(x, y, mButtons, modKeys) {
         x: x, y: y, mButtons: mButtons, modKeys: modKeys};
 }
 
+function MouseDraggedEvent(x, y, mButtons, modKeys) {
+    return { _type: MouseDraggedEvent, 
+        x: x, y: y, mButtons: mButtons, modKeys: modKeys};
+}
+
 function MouseReleasedEvent(x, y, mButtons, modKeys) {
     return { _type: MouseReleasedEvent, 
         x: x, y: y, mButtons: mButtons, modKeys: modKeys};
