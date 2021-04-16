@@ -71,7 +71,3 @@ function randomShadeOfBlue() {
     let shade2 = color(230, 20, 230);
     return lerpColor(shade1, shade2, s);
 }
-
-function lol() {
-    return 420;
-}
